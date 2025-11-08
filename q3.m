@@ -1,51 +1,24 @@
-%% QUESTÃO 3 - Compressão de Áudio com FFT usando energy_ratio
-clc; clear; close all;
+% 1. Ler a imagem
+img = imread('sosias.jpg');
 
-% 1) Carregar o sinal de áudio
-load handel.mat;  % contém y e Fs
-sound(y, Fs);
-pause(2);
-
-% 2) Calcular FFT
-Y = fft(y);
-
-% 3) Níveis de energia desejados
-energy_ratios = [0.995, 0.99, 0.90, 0.75, 0.50];
-
-for e = 1:length(energy_ratios)
-    energy_ratio = energy_ratios(e);
-
-    % Ordenar coeficientes por magnitude
-    [~, ind] = sort(abs(Y), 'descend');
-    i = 1;
-
-    % Encontrar quantos coeficientes mantêm 'energy_ratio' da energia total
-    while (norm(Y(ind(1:i))) / norm(Y))^2 < energy_ratio
-        i = i + 1;
-    end
-    needed = i;
-
-    % Criar sinal comprimido
-    Y2 = zeros(size(Y));
-    Y2(ind(1:needed)) = Y(ind(1:needed));
-    y_rec = real(ifft(Y2));
-
-    % Exibir resultados
-    perc_coef = 100 * needed / length(Y);
-    fprintf('FFT ? %.2f%% da energia ? %d coeficientes (%.2f%% do total)\n', ...
-        100*energy_ratio, needed, perc_coef);
-
-    % Plot
-    figure;
-    plot(y, 'LineWidth', 1.5); hold on;
-    plot(y_rec, 'LineWidth', 1.5);
-    xlabel('$n$', 'FontSize', 20, 'Interpreter', 'latex');
-    ylabel('$x[n]$', 'FontSize', 20, 'Interpreter', 'latex');
-    title(['FFT - ', num2str(100*energy_ratio), '% da energia mantida']);
-    legend({'Original', 'Comprimido'}, 'Interpreter', 'latex', 'Location', 'southeast');
-    
-    sound(y_rec, Fs);
-    pause(2);
+% Converter para escala de cinza (caso a imagem seja colorida)
+if size(img, 3) == 3
+    img = rgb2gray(img);
 end
 
+% 2. Calcular a DCT 2D
+dct_img = dct2(double(img));
 
+% 3. Calcular a energia da imagem (magnitude da DCT)
+energia = log(1 + abs(dct_img));
+
+% 4. Exibir os resultados
+figure;
+
+subplot(1,2,1);
+imshow(img, []);
+title('Imagem Original');
+
+subplot(1,2,2);
+imshow(energia, []);
+title('Energia da Imagem (DCT)');
